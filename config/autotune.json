@@ -1,0 +1,26 @@
+{
+  "zmq": {
+    "bind": "tcp://127.0.0.1:5555",
+    "connect": "tcp://127.0.0.1:5555",
+    "topic": "autotune"
+  },
+  "audio": {
+    "sample_rate": 48000,
+    "buffer_size": 256,
+    "input_device": null,
+    "output_device": null
+  },
+  "engine": "auto",
+  "plugin": {
+    "path": "plugins/QPitch.vst3",
+    "profile": "qpitch",
+    "dir": "plugins"
+  },
+  "defaults": {
+    "enabled": true,
+    "key": "C",
+    "scale": "major",
+    "correction_speed": 0.35,
+    "wet_dry_mix": 1.0
+  }
+}

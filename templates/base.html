@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ site_title }} — {{ title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/autotune.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('home') }}">{{ site_title }}</a>
+    <nav>
+      <a href="{{ url_for('home') }}">Singer</a>
+      <a href="{{ url_for('admin') }}">Admin</a>
+    </nav>
+  </header>
+  <main class="page">
+    {% block content %}{% endblock %}
+  </main>
+  <script>
+    window.AUTOTUNE_BOOT = {{ autotune | tojson }};
+    window.AUTOTUNE_KEYS = {{ keys | tojson }};
+    window.AUTOTUNE_SCALES = {{ scales | tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='js/autotune.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

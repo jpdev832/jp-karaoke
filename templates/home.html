@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero-strip">
+  <h1>Singer Controls</h1>
+  <p>Queue songs from your phone, then dial in live pitch correction before you take the mic.</p>
+</section>
+
+{% include "partials/autotune_panel.html" %}
+
+<section class="queue-placeholder">
+  <h2>Now Playing</h2>
+  <p class="muted">Song queue integration hooks into the upstream PiKaraoke player when merged into a full fork.</p>
+</section>
+{% endblock %}

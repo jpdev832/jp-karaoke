@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.py[cod]
+logs/
+*.log
+.DS_Store
+plugins/*.vst3
+plugins/**/*.so
+.cursor/

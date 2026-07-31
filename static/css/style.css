@@ -1,0 +1,120 @@
+/* jPiKaraoke base — practical karaoke control UI */
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+
+:root {
+  --bg: #12161c;
+  --bg-elevated: #1a212b;
+  --ink: #e8eef6;
+  --muted: #93a0b4;
+  --accent: #2ec4b6;
+  --accent-strong: #1fa896;
+  --danger: #e85d5d;
+  --line: rgba(232, 238, 246, 0.12);
+  --radius: 12px;
+  --font-display: "Outfit", sans-serif;
+  --font-body: "IBM Plex Sans", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(46, 196, 182, 0.18), transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, rgba(232, 93, 93, 0.12), transparent 50%),
+    var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--line);
+  background: rgba(18, 22, 28, 0.85);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+}
+
+.topbar nav {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.topbar nav a {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.topbar nav a:hover {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.page {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+}
+
+.hero-strip h1,
+.queue-placeholder h2,
+.admin-notes h2 {
+  font-family: var(--font-display);
+  margin: 0 0 0.35rem;
+}
+
+.hero-strip p,
+.muted {
+  color: var(--muted);
+  margin: 0;
+}
+
+.hero-strip {
+  margin-bottom: 1.5rem;
+}
+
+.queue-placeholder,
+.admin-notes {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.admin-notes ul {
+  margin: 0.75rem 0 0;
+  padding-left: 1.2rem;
+}
+
+code {
+  font-size: 0.9em;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
