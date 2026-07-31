@@ -9,16 +9,32 @@ real-time pitch-correction DSP (`autotune_engine.py` + VST3 / native).
 
 ## Quick start
 
+Requires **Python 3.10+** (macOS system / Xcode Python 3.9 is too old) and **ffmpeg**.
+
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
+# macOS (Homebrew): use a modern Python, not Xcode's 3.9
+brew install python@3.12 ffmpeg
+rm -rf .venv
+/opt/homebrew/bin/python3.12 -m venv .venv
+source .venv/bin/activate
+
 python -m pip install --upgrade pip   # needed for editable installs (hatchling)
 pip install -e .
-scripts/install_plugins.sh    # QPitch on ARM/macOS; Graillon on Linux x86_64
-./start.sh                    # karaoke web + Auto-Tune DSP
+scripts/install_plugins.sh            # QPitch on ARM/macOS; Graillon on Linux x86_64
+./start.sh                            # karaoke web + Auto-Tune DSP
 ```
 
-Requires **ffmpeg**. On macOS also install PortAudio / cmake deps for plugins
-(see [docs/AUTOTUNE.md](docs/AUTOTUNE.md)).
+On Linux, `python3` 3.10+ is usually fine:
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -e .
+scripts/install_plugins.sh
+./start.sh
+```
+
+Plugin / audio extras: [docs/AUTOTUNE.md](docs/AUTOTUNE.md).
 
 Open the splash URL (shown in the log / browser). Guests scan the QR code to
 search, queue songs, and set Auto-Tune on the Search or Browse page.
