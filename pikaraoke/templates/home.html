@@ -153,6 +153,15 @@
 			}
 		});
 
+		// REST poll for mic mix if sockets are flaky
+		setInterval(function () {
+			$.getJSON(apiBase + "/api/autotune/config").done(function (body) {
+				if (body && body.ok && body.params && typeof body.params.mic_volume === "number") {
+					setMicVolumeSlider(body.params.mic_volume);
+				}
+			});
+		}, 4000);
+
 		$("#submit-transpose").click(function () {
 			var value;
 			if (slider) {

@@ -1,12 +1,12 @@
 <section class="autotune-panel" id="autotune-panel" aria-labelledby="autotune-heading">
   <div class="autotune-header">
     <div>
-      <h2 id="autotune-heading">Auto-Tune Control Panel</h2>
-      <p class="muted">Live pitch correction for the USB mic / ADC input.</p>
+      <h2 id="autotune-heading">Auto-Tune</h2>
+      <p class="muted">Live pitch correction for the mic.</p>
     </div>
     <div class="autotune-status">
-      <span class="status-dot" id="autotune-conn-dot" data-state="connecting"></span>
-      <span id="autotune-conn-label">Connecting…</span>
+      <span class="status-dot" id="autotune-conn-dot" data-state="online"></span>
+      <span id="autotune-conn-label">Ready</span>
     </div>
   </div>
 
@@ -15,9 +15,9 @@
     {% if engine.backend == 'vst3' %}
       {{ engine.plugin }} on {{ engine.architecture }}
     {% else %}
-      built-in pitch correction &middot; {{ engine.architecture }}
+      built-in &middot; {{ engine.architecture }}
       {% if engine.plugin and not engine.plugin_usable %}
-        <span class="muted">({{ engine.plugin }} is not compatible with this CPU)</span>
+        <span class="muted">({{ engine.plugin }} incompatible)</span>
       {% endif %}
     {% endif %}
   </p>
@@ -51,7 +51,7 @@
       <span class="label">
         Retune Speed
         <span class="value-readout"><span id="at-speed-val">{{ '%.2f'|format(autotune.correction_speed) }}</span>
-          <small>(Robotic ← → Natural)</small>
+          <small>Robotic ← → Natural</small>
         </span>
       </span>
       <input type="range" id="at-speed" name="correction_speed"

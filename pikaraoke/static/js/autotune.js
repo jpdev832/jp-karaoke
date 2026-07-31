@@ -1,6 +1,5 @@
 /**
- * Auto-Tune Control Panel — syncs via REST + Socket.IO across all clients,
- * and the Flask backend forwards changes to autotune_engine.py over ZeroMQ.
+ * Auto-Tune Control Panel — REST-only live updates (no Socket.IO).
  */
 (function () {
   "use strict";
@@ -24,7 +23,9 @@
 
     let applyingRemote = false;
     let debounceTimer = null;
+    let syncTimer = null;
     const apiBase = (window.pikaraokeConfig && window.pikaraokeConfig.basePath) || "";
+    const configUrl = (apiBase || "") + "/api/autotune/config";
 
     function setConnection(state, label) {
       if (els.connDot) els.connDot.dataset.state = state;
@@ -44,11 +45,11 @@
 
     function readForm() {
       return {
-        enabled: !!els.enabled.checked,
-        key: els.key.value,
-        scale: els.scale.value,
-        correction_speed: Number(els.speed.value),
-        wet_dry_mix: Number(els.mix.value),
+        enabled: !!(els.enabled && els.enabled.checked),
+        key: els.key ? els.key.value : "C",
+        scale: els.scale ? els.scale.value : "major",
+        correction_speed: Number(els.speed ? els.speed.value : 0.35),
+        wet_dry_mix: Number(els.mix ? els.mix.value : 1),
       };
     }
 
@@ -56,16 +57,18 @@
       if (!params) return;
       applyingRemote = true;
       try {
-        if (typeof params.enabled === "boolean") els.enabled.checked = params.enabled;
-        if (params.key) els.key.value = params.key;
-        if (params.scale) els.scale.value = params.scale;
-        if (typeof params.correction_speed === "number") {
-          els.speed.value = String(params.correction_speed);
-          els.speedVal.textContent = Number(params.correction_speed).toFixed(2);
+        if (els.enabled && typeof params.enabled === "boolean") {
+          els.enabled.checked = params.enabled;
         }
-        if (typeof params.wet_dry_mix === "number") {
+        if (els.key && params.key) els.key.value = params.key;
+        if (els.scale && params.scale) els.scale.value = params.scale;
+        if (els.speed && typeof params.correction_speed === "number") {
+          els.speed.value = String(params.correction_speed);
+          if (els.speedVal) els.speedVal.textContent = Number(params.correction_speed).toFixed(2);
+        }
+        if (els.mix && typeof params.wet_dry_mix === "number") {
           els.mix.value = String(params.wet_dry_mix);
-          els.mixVal.textContent = Number(params.wet_dry_mix).toFixed(2);
+          if (els.mixVal) els.mixVal.textContent = Number(params.wet_dry_mix).toFixed(2);
         }
       } finally {
         applyingRemote = false;
@@ -73,17 +76,8 @@
     }
 
     function publishLocal(params) {
-      const shared = window.socket;
-      if (shared && shared.connected) {
-        shared.emit("autotune_set", { params: params });
-        return;
-      }
-      if (window.autotuneSocket && window.autotuneSocket.connected) {
-        window.autotuneSocket.emit("autotune_set", { params: params });
-        return;
-      }
-      // REST fallback if socket is briefly unavailable
-      fetch((apiBase || "") + "/api/autotune/config", {
+      setConnection("online", "Saving…");
+      fetch(configUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(params),
@@ -97,79 +91,57 @@
         .then(function (body) {
           showError("");
           applyState(body.params);
+          setConnection("online", "Ready");
         })
         .catch(function (err) {
+          setConnection("offline", "Error");
           showError(err.message || "Failed to update Auto-Tune");
         });
     }
 
     function schedulePublish() {
       if (applyingRemote) return;
-      els.speedVal.textContent = Number(els.speed.value).toFixed(2);
-      els.mixVal.textContent = Number(els.mix.value).toFixed(2);
+      if (els.speedVal && els.speed) {
+        els.speedVal.textContent = Number(els.speed.value).toFixed(2);
+      }
+      if (els.mixVal && els.mix) {
+        els.mixVal.textContent = Number(els.mix.value).toFixed(2);
+      }
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(function () {
         publishLocal(readForm());
-      }, 40);
+      }, 120);
+    }
+
+    function refreshFromServer() {
+      fetch(configUrl, { headers: { Accept: "application/json" } })
+        .then(function (res) {
+          return res.json();
+        })
+        .then(function (body) {
+          if (body && body.ok && body.params) {
+            applyState(body.params);
+            setConnection("online", "Ready");
+            showError("");
+          }
+        })
+        .catch(function () {
+          setConnection("offline", "Unavailable");
+        });
     }
 
     form.addEventListener("input", schedulePublish);
     form.addEventListener("change", schedulePublish);
 
-    // Seed from server-rendered boot state
     if (window.AUTOTUNE_BOOT) applyState(window.AUTOTUNE_BOOT);
+    setConnection("online", "Ready");
+    refreshFromServer();
 
-    if (typeof io === "undefined") {
-      setConnection("offline", "Socket.IO unavailable — using REST");
-      return;
-    }
-
-    // Prefer the shared PiKaraoke socket when present (Home page).
-    let socket = window.socket;
-    if (!socket || typeof socket.on !== "function") {
-      const socketPath =
-        (window.pikaraokeConfig && window.pikaraokeConfig.socketioPath) || "/socket.io";
-      socket = io({ path: socketPath });
-      window.autotuneSocket = socket;
-    } else {
-      window.autotuneSocket = socket;
-    }
-
-    function onConnected() {
-      setConnection("online", "Live");
-      showError("");
-      socket.emit("autotune_get");
-    }
-
-    if (socket.connected) {
-      onConnected();
-    } else {
-      socket.on("connect", onConnected);
-    }
-
-    socket.on("disconnect", function () {
-      setConnection("offline", "Reconnecting…");
+    // Light polling so multiple phones stay roughly in sync without sockets.
+    syncTimer = setInterval(refreshFromServer, 4000);
+    window.addEventListener("beforeunload", function () {
+      if (syncTimer) clearInterval(syncTimer);
     });
-
-    socket.on("connect_error", function () {
-      setConnection("offline", "Offline — using REST");
-    });
-
-    socket.on("autotune_update", function (params) {
-      showError("");
-      applyState(params);
-    });
-
-    socket.on("autotune_error", function (payload) {
-      showError((payload && payload.error) || "Auto-Tune update rejected");
-    });
-
-    // If connect never fires quickly, fall back to REST status so UI is usable.
-    setTimeout(function () {
-      if (!socket.connected && els.connLabel && els.connLabel.textContent.indexOf("Connecting") !== -1) {
-        setConnection("offline", "REST mode");
-      }
-    }, 2500);
   }
 
   if (document.readyState === "loading") {

@@ -1,31 +1,42 @@
-/* Auto-Tune Control Panel */
+/* Auto-Tune panel — Bulma-compatible (no missing CSS variables). */
+
 .autotune-panel {
-  background: var(--bg-elevated);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 1.25rem 1.35rem 1.5rem;
+  background: #1a1d23;
+  border: 1px solid #3a3f4b;
+  border-radius: 8px;
+  padding: 1rem 1.1rem 1.25rem;
+  color: #f5f5f5;
+  max-width: 500px;
 }
 
 .autotune-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
 }
 
 .autotune-header h2 {
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  margin: 0 0 0.25rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 0.2rem;
+  color: #fff;
+}
+
+.autotune-header .muted,
+.autotune-panel .muted {
+  color: #a0a8b8;
+  margin: 0;
+  font-size: 0.9rem;
 }
 
 .autotune-status {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  color: var(--muted);
-  font-size: 0.9rem;
+  gap: 0.4rem;
+  color: #a0a8b8;
+  font-size: 0.85rem;
   white-space: nowrap;
 }
 
@@ -34,150 +45,165 @@
   height: 0.65rem;
   border-radius: 50%;
   background: #8a94a6;
-  box-shadow: 0 0 0 3px rgba(138, 148, 166, 0.2);
+  flex-shrink: 0;
 }
 
 .status-dot[data-state="online"] {
-  background: var(--accent);
-  box-shadow: 0 0 0 3px rgba(46, 196, 182, 0.25);
+  background: #48c78e;
 }
 
 .status-dot[data-state="offline"] {
-  background: var(--danger);
-  box-shadow: 0 0 0 3px rgba(232, 93, 93, 0.2);
+  background: #f14668;
+}
+
+.status-dot[data-state="connecting"] {
+  background: #ffe08a;
 }
 
 .engine-badge {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0 0 1.25rem;
-  font-size: 0.9rem;
-  color: var(--muted);
+  gap: 0.45rem;
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: #a0a8b8;
 }
 
 .badge {
   display: inline-block;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .badge-vst3 {
-  background: rgba(46, 196, 182, 0.18);
-  color: var(--accent);
-  border: 1px solid rgba(46, 196, 182, 0.4);
+  background: rgba(72, 199, 142, 0.2);
+  color: #48c78e;
+  border: 1px solid rgba(72, 199, 142, 0.45);
 }
 
 .badge-native {
-  background: rgba(232, 184, 93, 0.15);
-  color: #e8b85d;
-  border: 1px solid rgba(232, 184, 93, 0.4);
+  background: rgba(255, 224, 138, 0.15);
+  color: #ffe08a;
+  border: 1px solid rgba(255, 224, 138, 0.4);
 }
 
 .autotune-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem 1.25rem;
+  grid-template-columns: 1fr;
+  gap: 1rem;
 }
 
 .field,
 .toggle-field {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.4rem;
 }
 
 .field-span {
   grid-column: 1 / -1;
 }
 
-.label {
+.autotune-panel .label {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.75rem;
-  font-size: 0.85rem;
+  gap: 0.5rem;
+  font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: #a0a8b8;
+  margin-bottom: 0;
 }
 
 .value-readout {
   font-variant-numeric: tabular-nums;
-  color: var(--ink);
+  color: #f5f5f5;
   text-transform: none;
   font-weight: 500;
 }
 
 .value-readout small {
-  color: var(--muted);
+  color: #7a8499;
   font-weight: 400;
-  margin-left: 0.35rem;
+  margin-left: 0.25rem;
 }
 
-select,
-input[type="range"] {
-  width: 100%;
-}
-
-select {
+.autotune-panel select {
   appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
   background: #0f1319
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2393a0b4' d='M1 1l5 5 5-5'/%3E%3C/svg%3E")
     right 0.75rem center / 12px no-repeat;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  color: var(--ink);
+  border: 1px solid #4a5160;
+  border-radius: 6px;
+  color: #f5f5f5;
   padding: 0.65rem 2rem 0.65rem 0.75rem;
   font: inherit;
+  min-height: 2.5rem;
 }
 
-select:focus {
-  outline: 2px solid rgba(46, 196, 182, 0.45);
+.autotune-panel select:focus {
+  outline: 2px solid rgba(72, 199, 142, 0.5);
   outline-offset: 1px;
 }
 
-input[type="range"] {
+/* Visible range sliders (iOS / desktop) */
+.autotune-panel input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
-  height: 0.35rem;
+  width: 100%;
+  height: 2rem;
+  margin: 0.25rem 0 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.autotune-panel input[type="range"]::-webkit-slider-runnable-track {
+  height: 0.45rem;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(232, 93, 93, 0.55), rgba(46, 196, 182, 0.75));
-  margin: 0.55rem 0 0.2rem;
+  background: linear-gradient(90deg, #f14668, #48c78e);
 }
 
-input[type="range"]::-webkit-slider-thumb {
+.autotune-panel input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin-top: -0.45rem;
   border-radius: 50%;
-  background: var(--ink);
-  border: 2px solid var(--accent-strong);
-  cursor: pointer;
+  background: #fff;
+  border: 2px solid #48c78e;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
 }
 
-input[type="range"]::-moz-range-thumb {
-  width: 1.1rem;
-  height: 1.1rem;
+.autotune-panel input[type="range"]::-moz-range-track {
+  height: 0.45rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f14668, #48c78e);
+}
+
+.autotune-panel input[type="range"]::-moz-range-thumb {
+  width: 1.35rem;
+  height: 1.35rem;
   border-radius: 50%;
-  background: var(--ink);
-  border: 2px solid var(--accent-strong);
-  cursor: pointer;
+  background: #fff;
+  border: 2px solid #48c78e;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
 }
 
 .toggle-field {
   position: relative;
-  justify-content: center;
 }
 
-.toggle-field input {
+.toggle-field > input[type="checkbox"] {
   position: absolute;
   opacity: 0;
   width: 1px;
@@ -185,11 +211,12 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .toggle-track {
+  display: block;
   width: 3.2rem;
   height: 1.7rem;
   border-radius: 999px;
   background: #2a3340;
-  border: 1px solid var(--line);
+  border: 1px solid #4a5160;
   position: relative;
   transition: background 160ms ease;
   cursor: pointer;
@@ -208,32 +235,71 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .toggle-field input:checked + .toggle-track {
-  background: rgba(46, 196, 182, 0.35);
-  border-color: rgba(46, 196, 182, 0.55);
+  background: rgba(72, 199, 142, 0.35);
+  border-color: rgba(72, 199, 142, 0.55);
 }
 
 .toggle-field input:checked + .toggle-track::after {
   transform: translateX(1.45rem);
-  background: var(--accent);
-}
-
-.toggle-field input:focus-visible + .toggle-track {
-  outline: 2px solid rgba(46, 196, 182, 0.45);
-  outline-offset: 2px;
+  background: #48c78e;
 }
 
 .autotune-error {
-  margin: 1rem 0 0;
-  color: var(--danger);
-  font-size: 0.95rem;
+  margin: 0.85rem 0 0;
+  color: #f14668;
+  font-size: 0.9rem;
 }
 
-@media (max-width: 720px) {
-  .autotune-grid {
-    grid-template-columns: 1fr;
-  }
+/* Room mix sliders on Home — same visible treatment */
+#mix-song-volume,
+#mix-mic-volume {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2rem;
+  background: transparent;
+  cursor: pointer;
+}
 
-  .autotune-header {
-    flex-direction: column;
+#mix-song-volume::-webkit-slider-runnable-track,
+#mix-mic-volume::-webkit-slider-runnable-track {
+  height: 0.45rem;
+  border-radius: 999px;
+  background: #4a5160;
+}
+
+#mix-song-volume::-webkit-slider-thumb,
+#mix-mic-volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin-top: -0.45rem;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #3e8ed0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+#mix-song-volume::-moz-range-track,
+#mix-mic-volume::-moz-range-track {
+  height: 0.45rem;
+  border-radius: 999px;
+  background: #4a5160;
+}
+
+#mix-song-volume::-moz-range-thumb,
+#mix-mic-volume::-moz-range-thumb {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #3e8ed0;
+}
+
+@media (min-width: 721px) {
+  .autotune-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem 1.1rem;
   }
 }
