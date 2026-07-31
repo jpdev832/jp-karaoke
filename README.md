@@ -11,6 +11,7 @@ real-time pitch-correction DSP (`autotune_engine.py` + VST3 / native).
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
+python -m pip install --upgrade pip   # needed for editable installs (hatchling)
 pip install -e .
 scripts/install_plugins.sh    # QPitch on ARM/macOS; Graillon on Linux x86_64
 ./start.sh                    # karaoke web + Auto-Tune DSP
