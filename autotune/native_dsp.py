@@ -227,7 +227,7 @@ class NativeAutotune:
 
         if not params.enabled:
             self._current_shift = 0.0
-            return block
+            return self._apply_mic_volume(block, params.mic_volume)
 
         frames = mono.size
         if frames >= self.analysis_frames:
@@ -257,9 +257,17 @@ class NativeAutotune:
             wet = (wet * mix + mono * (1.0 - mix)).astype(np.float32)
 
         if multichannel:
-            return np.repeat(wet[np.newaxis, :], block.shape[0], axis=0)
-        return wet
+            wet = np.repeat(wet[np.newaxis, :], block.shape[0], axis=0)
+        return self._apply_mic_volume(wet, params.mic_volume)
 
+    @staticmethod
+    def _apply_mic_volume(block: np.ndarray, mic_volume: float) -> np.ndarray:
+        gain = float(np.clip(mic_volume, 0.0, 1.0))
+        if gain >= 0.999:
+            return block
+        if gain <= 0.0:
+            return np.zeros_like(block)
+        return (block * gain).astype(np.float32, copy=False)
 
 def run_native_stream(
     get_params,

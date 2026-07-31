@@ -1,7 +1,7 @@
 """Playback control routes for skip, pause, volume, and transpose."""
 
 import flask_babel
-from flask import redirect, request, url_for
+from flask import jsonify, redirect, request, url_for
 from flask_smorest import Blueprint
 
 from pikaraoke.lib.current_app import broadcast_event, get_karaoke_instance
@@ -10,6 +10,15 @@ _ = flask_babel.gettext
 
 
 controller_bp = Blueprint("controller", __name__)
+
+
+def _wants_json() -> bool:
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return True
+    best = request.accept_mimetypes.best_match(["application/json", "text/html"])
+    return best == "application/json" and request.accept_mimetypes[best] >= request.accept_mimetypes[
+        "text/html"
+    ]
 
 
 @controller_bp.route("/skip")
@@ -55,8 +64,11 @@ def restart():
 def volume(volume):
     """Set the playback volume."""
     k = get_karaoke_instance()
-    broadcast_event("volume", volume)
-    k.volume_change(float(volume))
+    level = float(volume)
+    broadcast_event("volume", level)
+    k.volume_change(level)
+    if _wants_json():
+        return jsonify({"ok": True, "volume": k.volume})
     return redirect(url_for("home.home"))
 
 
@@ -66,6 +78,8 @@ def vol_up():
     k = get_karaoke_instance()
     broadcast_event("volume", "up")
     k.vol_up()
+    if _wants_json():
+        return jsonify({"ok": True, "volume": k.volume})
     return redirect(url_for("home.home"))
 
 
@@ -75,4 +89,6 @@ def vol_down():
     k = get_karaoke_instance()
     broadcast_event("volume", "down")
     k.vol_down()
+    if _wants_json():
+        return jsonify({"ok": True, "volume": k.volume})
     return redirect(url_for("home.home"))

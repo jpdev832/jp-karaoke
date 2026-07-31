@@ -21,6 +21,8 @@
     "key": "C",
     "scale": "major",
     "correction_speed": 0.35,
-    "wet_dry_mix": 1.0
+    "wet_dry_mix": 1.0,
+    "mic_volume": 1.0
   }
 }
+

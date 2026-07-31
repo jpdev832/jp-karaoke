@@ -21,6 +21,7 @@ class AutotuneParams:
     scale: str = "major"
     correction_speed: float = 0.35
     wet_dry_mix: float = 1.0
+    mic_volume: float = 1.0
 
     def normalize(self) -> "AutotuneParams":
         flat_map = {"DB": "C#", "EB": "D#", "GB": "F#", "AB": "G#", "BB": "A#"}
@@ -32,16 +33,20 @@ class AutotuneParams:
             raise ValueError(f"Invalid scale '{self.scale}'. Expected one of {VALID_SCALES}")
         speed = float(self.correction_speed)
         mix = float(self.wet_dry_mix)
+        mic_vol = float(self.mic_volume)
         if not 0.0 <= speed <= 1.0:
             raise ValueError("correction_speed must be between 0.0 and 1.0")
         if not 0.0 <= mix <= 1.0:
             raise ValueError("wet_dry_mix must be between 0.0 and 1.0")
+        if not 0.0 <= mic_vol <= 1.0:
+            raise ValueError("mic_volume must be between 0.0 and 1.0")
         return AutotuneParams(
             enabled=bool(self.enabled),
             key=key,
             scale=scale,
             correction_speed=speed,
             wet_dry_mix=mix,
+            mic_volume=mic_vol,
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -55,6 +60,7 @@ class AutotuneParams:
             scale=str(data.get("scale", "major")),
             correction_speed=float(data.get("correction_speed", 0.35)),
             wet_dry_mix=float(data.get("wet_dry_mix", 1.0)),
+            mic_volume=float(data.get("mic_volume", 1.0)),
         ).normalize()
 
 

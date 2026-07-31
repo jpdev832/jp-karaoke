@@ -50,6 +50,16 @@ logger = logging.getLogger("autotune_engine")
 ROOT = Path(__file__).resolve().parent
 
 
+def _linear_to_db(linear: float) -> float:
+    """Convert 0..1 linear gain to pedalboard Gain gain_db."""
+    import math
+
+    gain = max(0.0, min(1.0, float(linear)))
+    if gain <= 0.0:
+        return -100.0
+    return 20.0 * math.log10(gain)
+
+
 class AutotuneEngine:
     """Live pitch-correction engine with VST3 and plugin-free backends."""
 
@@ -58,6 +68,7 @@ class AutotuneEngine:
         self.params = config.defaults
         self.active_engine: str | None = None
         self._plugin = None
+        self._gain = None
         self._stream = None
         self._native = None
         self._lock = threading.RLock()
@@ -114,6 +125,8 @@ class AutotuneEngine:
             self.params = new_params
             if self._plugin is not None:
                 apply_params(self._plugin, new_params, self.config.plugin_profile)
+            if self._gain is not None:
+                self._gain.gain_db = _linear_to_db(new_params.mic_volume)
             if self._native is not None:
                 self._native.params = new_params
                 logger.info("Native Auto-Tune params: %s", new_params.to_dict())
@@ -178,13 +191,14 @@ class AutotuneEngine:
         return "vst3"
 
     def _start_vst3(self, chosen: DiscoveredPlugin) -> None:
-        from pedalboard import Pedalboard
+        from pedalboard import Gain, Pedalboard
         from pedalboard.io import AudioStream
 
         estimated = self._latency_ms()
         self._log_latency(estimated)
 
         self._plugin = self._load_plugin(chosen)
+        self._gain = Gain(gain_db=_linear_to_db(self.params.mic_volume))
 
         input_device = self.config.input_device or AudioStream.default_input_device_name
         output_device = self.config.output_device or AudioStream.default_output_device_name
@@ -199,7 +213,7 @@ class AutotuneEngine:
             buffer_size=int(self.config.buffer_size),
             allow_feedback=True,
         )
-        self._stream.plugins = Pedalboard([self._plugin])
+        self._stream.plugins = Pedalboard([self._plugin, self._gain])
         self.active_engine = "vst3"
         self._running.set()
 

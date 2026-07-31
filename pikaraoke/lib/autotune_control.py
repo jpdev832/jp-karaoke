@@ -83,9 +83,14 @@ def shutdown_zmq() -> None:
 
 
 def room_idle_params() -> AutotuneParams:
-    """Defaults from config, forced disabled (between songs / no opt-in)."""
+    """Defaults from config, forced disabled (between songs / no opt-in).
+
+    Preserves the live room mic_volume so guest mix is not reset between songs.
+    """
     base = get_config().defaults.to_dict()
     base["enabled"] = False
+    if _state is not None:
+        base["mic_volume"] = _state.mic_volume
     return AutotuneParams.from_dict(base)
 
 
@@ -131,7 +136,30 @@ def update_live(updates: dict[str, Any]) -> AutotuneParams:
     """Merge updates into current live state (admin / Socket.IO override)."""
     next_state = merge_params(get_state(), updates)
     broadcast(next_state)
+    if "mic_volume" in updates:
+        _mirror_sound_manager_volume(next_state.mic_volume)
     return next_state
+
+
+def _mirror_sound_manager_volume(volume: float) -> None:
+    """Best-effort: mirror mic_volume onto active SoundManager passthrough mics."""
+    try:
+        from flask import current_app, has_app_context
+
+        if not has_app_context():
+            return
+        k = current_app.config.get("KARAOKE_INSTANCE")
+        if k is None or not getattr(k, "sound_manager", None):
+            return
+        sm = k.sound_manager
+        active = getattr(sm, "_active_mics", {}) or {}
+        for device_id in list(active.keys()):
+            try:
+                sm.update_volume(device_id, float(volume))
+            except Exception as exc:
+                logger.debug("SoundManager volume mirror failed for %s: %s", device_id, exc)
+    except Exception as exc:
+        logger.debug("SoundManager mic_volume mirror skipped: %s", exc)
 
 
 def parse_queue_autotune(raw: Any) -> dict[str, Any] | None:
@@ -152,22 +180,29 @@ def parse_queue_autotune(raw: Any) -> dict[str, Any] | None:
         raise ValueError("autotune must be an object or omitted")
     if not raw.get("enabled", False):
         return None
-    params = AutotuneParams.from_dict({**get_config().defaults.to_dict(), **raw, "enabled": True})
-    return params.to_dict()
+    params = AutotuneParams.from_dict(
+        {**get_config().defaults.to_dict(), **raw, "enabled": True}
+    )
+    # Per-song presets do not own room mic mix.
+    data = params.to_dict()
+    data.pop("mic_volume", None)
+    return data
 
 
 def apply_for_song(autotune: dict[str, Any] | None) -> None:
     """Apply per-song Auto-Tune when a track starts. None disables until next song."""
     global _active_song_autotune
+    mic_volume = get_state().mic_volume
     _active_song_autotune = autotune
     if autotune:
-        broadcast(AutotuneParams.from_dict(autotune))
+        payload = {**autotune, "mic_volume": mic_volume}
+        broadcast(AutotuneParams.from_dict(payload))
     else:
         broadcast(room_idle_params())
 
 
 def restore_idle() -> None:
-    """Restore disabled room defaults after a song ends."""
+    """Restore disabled room defaults after a song ends (keeps mic_volume)."""
     global _active_song_autotune
     _active_song_autotune = None
     broadcast(room_idle_params())

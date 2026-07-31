@@ -1,10 +1,48 @@
 {% extends 'base.html' %} {% block scripts %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/autotune.css') }}">
+<script>
+	window.AUTOTUNE_BOOT = {{ autotune | tojson }};
+	window.AUTOTUNE_KEYS = {{ keys | tojson }};
+	window.AUTOTUNE_SCALES = {{ scales | tojson }};
+	window.AUTOTUNE_ENGINE = {{ engine | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/autotune.js') }}"></script>
 <script>
 	var volume = {{ volume|default(0.85) }};
+	var apiBase = window.pikaraokeConfig.basePath || "";
 
 	// Ensure global socket exists
 	if (typeof window.socket === 'undefined') {
 		window.socket = io({ path: window.pikaraokeConfig.socketioPath });
+	}
+
+	function setSongVolumeSliders(val) {
+		$("#volume-slider").val(val);
+		$("#mix-song-volume").val(val);
+		$("#mix-song-volume-val").text(Math.round(Number(val) * 100) + "%");
+	}
+
+	function setMicVolumeSlider(val) {
+		$("#mix-mic-volume").val(val);
+		$("#mix-mic-volume-val").text(Math.round(Number(val) * 100) + "%");
+	}
+
+	function postAutotune(partial) {
+		return $.ajax({
+			url: apiBase + "/api/autotune/config",
+			method: "POST",
+			contentType: "application/json",
+			headers: { "X-Requested-With": "XMLHttpRequest" },
+			data: JSON.stringify(partial),
+		});
+	}
+
+	function setSongVolume(value) {
+		return $.ajax({
+			url: apiBase + "/volume/" + value,
+			method: "GET",
+			headers: { "X-Requested-With": "XMLHttpRequest" },
+		});
 	}
 
 	function loadNowPlaying() {
@@ -58,7 +96,7 @@
 		if (np.volume != volume) {
 			volume = np.volume;
 			console.log("setting volume to " + volume);
-			$("#volume-slider").val(volume);
+			setSongVolumeSliders(volume);
 		}
 
 		if (np.is_paused) {
@@ -85,13 +123,35 @@
 			};
 		}
 
-		$("#volume-slider").on(
+		function onSongVolumeInput() {
+			const value = this.value;
+			volume = value;
+			setSongVolumeSliders(value);
+			setSongVolume(value);
+		}
+
+		$("#volume-slider, #mix-song-volume").on("input", debounce(onSongVolumeInput, 150));
+
+		$("#mix-mic-volume").on(
 			"input",
-			debounce(function (event) {
-				const value = this.value;
-				$.get(window.pikaraokeConfig.basePath + "/volume/" + value);
-			}, 500)
+			debounce(function () {
+				var value = parseFloat(this.value);
+				setMicVolumeSlider(value);
+				postAutotune({ mic_volume: value });
+			}, 150)
 		);
+
+		// Seed mic mix from boot / API
+		if (window.AUTOTUNE_BOOT && typeof window.AUTOTUNE_BOOT.mic_volume === "number") {
+			setMicVolumeSlider(window.AUTOTUNE_BOOT.mic_volume);
+		}
+		setSongVolumeSliders(volume);
+
+		window.socket.on("autotune_update", function (params) {
+			if (params && typeof params.mic_volume === "number") {
+				setMicVolumeSlider(params.mic_volume);
+			}
+		});
 
 		$("#submit-transpose").click(function () {
 			var value;
@@ -114,11 +174,27 @@
 		});
 
 		$("#vol-up").click(function () {
-			$.get(window.pikaraokeConfig.basePath + "/vol_up");
+			$.ajax({
+				url: window.pikaraokeConfig.basePath + "/vol_up",
+				headers: { "X-Requested-With": "XMLHttpRequest" },
+			}).done(function (data) {
+				if (data && typeof data.volume === "number") {
+					volume = data.volume;
+					setSongVolumeSliders(volume);
+				}
+			});
 		});
 
 		$("#vol-down").click(function () {
-			$.get(window.pikaraokeConfig.basePath + "/vol_down");
+			$.ajax({
+				url: window.pikaraokeConfig.basePath + "/vol_down",
+				headers: { "X-Requested-With": "XMLHttpRequest" },
+			}).done(function (data) {
+				if (data && typeof data.volume === "number") {
+					volume = data.volume;
+					setSongVolumeSliders(volume);
+				}
+			});
 		});
 
 		$("#restart").click(function () {
@@ -249,8 +325,45 @@
 <p id="up-next" class="has-text-warning"></p>
 <hr />
 
+{# Guest room mix — song track vs mic/DSP #}
+<div class="has-background-black-bis box" style="max-width: 500px">
+	<h4>Room Mix</h4>
+	<p class="help has-text-grey mb-3">Balance karaoke track and microphone. Updates live.</p>
+	<label class="label is-size-7 mb-1">
+		Song
+		<span class="has-text-grey" id="mix-song-volume-val">{{ ((volume|default(0.85)) * 100)|round|int }}%</span>
+	</label>
+	<input
+		type="range"
+		min="0"
+		max="1"
+		step="0.025"
+		value="{{ volume|default(0.85) }}"
+		id="mix-song-volume"
+		style="width: 100%"
+	/>
+	<label class="label is-size-7 mb-1 mt-3">
+		Mic
+		<span class="has-text-grey" id="mix-mic-volume-val">{{ ((autotune.mic_volume|default(1.0)) * 100)|round|int }}%</span>
+	</label>
+	<input
+		type="range"
+		min="0"
+		max="1"
+		step="0.025"
+		value="{{ autotune.mic_volume|default(1.0) }}"
+		id="mix-mic-volume"
+		style="width: 100%"
+	/>
+</div>
+
+{# Guest live Auto-Tune #}
+<div class="mt-4" style="max-width: 500px">
+	{% include "partials/autotune_panel.html" %}
+</div>
+
 {% if admin %}
-<div class="has-background-black-bis box control-box" style="max-width: 500px; display: none">
+<div class="has-background-black-bis box control-box mt-4" style="max-width: 500px; display: none">
 	{# MSG: Title of the box with controls such as pause and skip. #}
 	<h4>{% trans %}Player Control{% endtrans %}</h4>
 	<div class="is-size-3" style="display: flex; justify-content: space-between">
@@ -317,6 +430,9 @@
 	</div>
 	{% endif %}
 </div>
+{% else %}
+{# Hidden volume-slider so guest mix JS can still sync if admin block is absent #}
+<input type="hidden" id="volume-slider" value="{{ volume|default(0.85) }}" />
 {% endif %}
 
 <div></div>

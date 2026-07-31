@@ -51,6 +51,34 @@ def test_enqueue_without_autotune(queue_manager):
     assert queue_manager.queue[0]["autotune"] is None
 
 
-def test_room_idle_disabled():
-    idle = room_idle_params()
+def test_room_idle_preserves_mic_volume(monkeypatch):
+    from pikaraoke.lib import autotune_control as at
+
+    at._state = at.AutotuneParams.from_dict(
+        {"enabled": True, "key": "C", "scale": "major", "mic_volume": 0.4}
+    )
+    idle = at.room_idle_params()
     assert idle.enabled is False
+    assert idle.mic_volume == 0.4
+
+
+def test_apply_for_song_preserves_mic_volume(monkeypatch):
+    from pikaraoke.lib import autotune_control as at
+
+    published = []
+
+    class FakePub:
+        def publish(self, params):
+            published.append(params.to_dict())
+
+    monkeypatch.setattr(at, "_publisher", FakePub())
+    monkeypatch.setattr(at, "_socketio", None)
+    at._state = at.AutotuneParams.from_dict(
+        {"enabled": False, "key": "C", "scale": "major", "mic_volume": 0.55}
+    )
+    at.apply_for_song(
+        {"enabled": True, "key": "G", "scale": "minor", "correction_speed": 0.2, "wet_dry_mix": 1.0}
+    )
+    assert published[-1]["key"] == "G"
+    assert published[-1]["mic_volume"] == 0.55
+    assert published[-1]["enabled"] is True
