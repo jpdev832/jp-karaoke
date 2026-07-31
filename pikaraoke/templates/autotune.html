@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block scripts %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/autotune.css') }}">
+<script>
+  window.AUTOTUNE_BOOT = {{ autotune | tojson }};
+  window.AUTOTUNE_KEYS = {{ keys | tojson }};
+  window.AUTOTUNE_SCALES = {{ scales | tojson }};
+  window.AUTOTUNE_ENGINE = {{ engine | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/autotune.js') }}"></script>
+{% endblock %}
+{% block header %}
+<h1>{% block title %}Auto-Tune{% endblock %}</h1>
+{% endblock %}
+{% block content %}
+{% include "partials/autotune_panel.html" %}
+<p class="has-text-grey mt-4">
+  Live overrides apply to the USB mic DSP for the current song.
+  Guests set Auto-Tune when they queue a track; those settings apply only while their song plays.
+</p>
+{% endblock %}

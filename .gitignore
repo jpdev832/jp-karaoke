@@ -1,9 +1,19 @@
-.venv/
+
+build/
+.coverage
+.cursor/
+dist/
+.DS_Store
+*.egg-info/
+htmlcov/
+*.log
+logs/
+# PiKaraoke / JP Karaoke
+plugins/**/*.so
+plugins/*.vst3
+*.pyc
 __pycache__/
 *.py[cod]
-logs/
-*.log
-.DS_Store
-plugins/*.vst3
-plugins/**/*.so
-.cursor/
+.pytest_cache/
+.uv/
+.venv/

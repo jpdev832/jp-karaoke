@@ -1,0 +1,97 @@
+[project]
+name = "jp-karaoke"
+version = "0.1.0"
+description = "JP Karaoke — PiKaraoke-based karaoke with live Auto-Tune for USB mics"
+authors = [{name = "JP Dev"}, {name = "Vic Wong"}]
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["karaoke", "ktv", "autotune", "youtube", "raspberry-pi", "osx", "windows", "linux"]
+classifiers = [
+  "Topic :: Multimedia :: Video",
+  "Topic :: Multimedia :: Sound/Audio",
+  "Topic :: Games/Entertainment"
+]
+dependencies = [
+  "Flask>=3.1.0,<3.1.3",  # 3.1.3 breaks flask-socketio; remove cap when fixed
+  "qrcode[png]==8.2",
+  "psutil==7.2.1",
+  "requests==2.32.5",
+  "flask-paginate==2024.4.12",
+  "flask-smorest>=0.46.0",
+  "Babel==2.17.0",
+  "Flask-Babel==4.0.0",
+  "ffmpeg-python==0.2.0",
+  "yt-dlp[default]>=2026.07.04",
+  "flask-socketio>=5.5.0",
+  "gevent>=24.11.1",
+  "sounddevice>=0.5.0; sys_platform != 'linux'",
+  "pyzmq>=25.0.0",
+  "pedalboard>=0.9.0",
+  "numpy>=1.24.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pre-commit>=3.7.1",
+  "pytest>=9.0.2",
+  "pytest-cov>=7.0.0",
+
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.0",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+]
+translations = [
+    "deep-translator>=1.11.4",
+    "polib>=1.2.0",
+]
+
+[project.scripts]
+jp-karaoke = "pikaraoke.app:main"
+pikaraoke = "pikaraoke.app:main"
+
+[project.urls]
+Homepage = "https://github.com/jpdev832/jp-karaoke"
+Repository = "https://github.com/jpdev832/jp-karaoke"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pikaraoke", "autotune"]
+
+# Poetry-specific configuration (reads from [project] above)
+[tool.poetry]
+package-mode = true
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.7.1"
+
+[tool.pyright]
+include = ["src"]
+exclude = ["**/node_modules",
+    "**/__pycache__",
+    "src/experimental",
+    "src/typestubs"
+]
+ignore = ["src/oldstuff"]
+defineConstant = { DEBUG = true }
+stubPath = "src/stubs"
+
+reportMissingImports = "error"
+reportMissingTypeStubs = false
+
+pythonVersion = "3.10"
+pythonPlatform = "Linux"
+
+[tool.coverage.run]
+omit = [
+    "pikaraoke/constants.py",
+    "pikaraoke/app.py",
+    "pikaraoke/lib/current_app.py",
+    "pikaraoke/lib/args.py",
+]

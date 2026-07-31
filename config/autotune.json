@@ -17,7 +17,7 @@
     "dir": "plugins"
   },
   "defaults": {
-    "enabled": true,
+    "enabled": false,
     "key": "C",
     "scale": "major",
     "correction_speed": 0.35,
