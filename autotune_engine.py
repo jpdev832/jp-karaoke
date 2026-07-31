@@ -25,7 +25,7 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from autotune.config import AutotuneConfig, AutotuneParams, load_config, merge_params
 from autotune.plugin_map import apply_params, list_plugin_parameters
@@ -37,7 +37,9 @@ from autotune.plugins import (
     host_os,
     select_plugin,
 )
-from autotune.zmq_client import AutotuneZmqSubscriber
+
+if TYPE_CHECKING:
+    from autotune.zmq_client import AutotuneZmqSubscriber
 
 logging.basicConfig(
     level=logging.INFO,
@@ -124,6 +126,8 @@ class AutotuneEngine:
     # Startup
     # ------------------------------------------------------------------
     def start(self) -> None:
+        from autotune.zmq_client import AutotuneZmqSubscriber
+
         chosen = self.choose_plugin()
         mode = self._decide_engine(chosen)
 
