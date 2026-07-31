@@ -22,6 +22,31 @@ echo "    root:   $ROOT"
 echo "    python: $PYTHON"
 echo "    config: $CONFIG"
 
+# ---------------------------------------------------------------------------
+# Preflight: Python 3.10+ and editable install deps
+# ---------------------------------------------------------------------------
+if ! "$PYTHON" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' 2>/dev/null; then
+  ver="$("$PYTHON" -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || echo unknown)"
+  echo "xx Python 3.10+ is required (found $ver at $PYTHON)."
+  echo "   On macOS with Homebrew:"
+  echo "     brew install python@3.12"
+  echo "     rm -rf .venv"
+  echo "     /opt/homebrew/bin/python3.12 -m venv .venv"
+  echo "     source .venv/bin/activate"
+  echo "     python -m pip install --upgrade pip"
+  echo "     pip install -e ."
+  exit 1
+fi
+
+if ! "$PYTHON" -c 'import qrcode, flask, zmq' 2>/dev/null; then
+  echo "xx Project dependencies are not installed in this environment."
+  echo "   Run:"
+  echo "     source .venv/bin/activate"
+  echo "     python -m pip install --upgrade pip"
+  echo "     pip install -e ."
+  exit 1
+fi
+
 detect_usb_input() {
   local preferred="${AUTOTUNE_INPUT_DEVICE:-}"
   if [[ -n "$preferred" ]]; then
